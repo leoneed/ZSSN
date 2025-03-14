@@ -1,6 +1,6 @@
 from django.db import models
 from datetime import date
-from .constants import GENDER
+from zssn.constants import GENDER
 
 
 class Survivor(models.Model):
@@ -17,6 +17,10 @@ class Survivor(models.Model):
         blank=True,
         related_name="infected_survivors_reported",
     )
+
+    @property
+    def age(self):
+        return self.age_on_registration + date.today().year - self.registration_year
 
 
 class Item(models.Model):
