@@ -1,13 +1,14 @@
 import React from 'react';
+import { Route, Routes } from 'react-router-dom';
+import AppLayout from './Layout';
+import Survivors from './pages/Survivors';
 
-function App() {
-  return (
-    <div className="App">
-      <header className="App-header">
-        ZSSN
-      </header>
-    </div>
-  );
-}
+const App = () => (
+    <AppLayout>
+        <Routes>
+            <Route path="/survivors" element={<Survivors />} />
+        </Routes>
+    </AppLayout>
+);
 
 export default App;
