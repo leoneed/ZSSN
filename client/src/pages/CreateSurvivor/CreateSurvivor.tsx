@@ -1,36 +1,73 @@
 import React from 'react';
 import { Controller, useForm } from 'react-hook-form';
-import { Gender, ISurvivor, ISurvivorCreate } from '../../types';
-import { useCreateSurvivor } from '../../api';
-import { Button, Form, Input, Select, message } from 'antd';
+import {
+  Gender,
+  IInventoryCreate,
+  IItem,
+  ISurvivor,
+  ISurvivorCreate,
+} from '../../types';
+import { useCreateSurvivor, useGetItems } from '../../api';
+import {
+  Button,
+  Card,
+  Divider,
+  Form,
+  Input,
+  InputNumber,
+  Select,
+  message,
+} from 'antd';
 import { t } from '../../utils';
+import style from './createSurvivor.module.scss';
+import { useNavigate } from 'react-router-dom';
 
 const CreateSurvivor = () => {
   const {
     handleSubmit,
     control,
     formState: { errors },
-  } = useForm<ISurvivorCreate>();
-  const { mutate: createSurvivor, isPending } = useCreateSurvivor(
-    (data: ISurvivor) => {
-      message.success(`${t('Survivor Created:')} ${data.name}`);
+  } = useForm<ISurvivorCreate>({
+    defaultValues: {
+      inventory: [],
     },
-    (error) => {
-      message.error(`${t('Server error')}: ${error.message}`);
-    }
-  );
+  });
+  const navigate = useNavigate();
+  const { mutate: createSurvivor, isPending: createSurvivorIsPending } =
+    useCreateSurvivor(
+      ({ id, name }: ISurvivor) => {
+        message.success(`${t('Survivor Created:')} ${name}`);
+        navigate(`/survivors/${id}`);
+      },
+      (error) => {
+        message.error(`${t('Server error')}: ${error.message}`);
+      }
+    );
+  const { data: items = [], isPending: itemsIsPending } = useGetItems();
 
   const onSubmit = (data: ISurvivorCreate) => {
+    const inventory: IInventoryCreate[] = items
+      .map((item) => ({
+        item_id: item.id,
+        quantity: data.inventory?.[item.id]?.quantity || 0,
+      }))
+      .filter((inv) => inv.quantity > 0);
+
     createSurvivor({
       ...data,
       age: Number(data.age),
       latitude: Number(data.latitude),
       longitude: Number(data.longitude),
+      inventory,
     });
   };
 
   return (
-    <Form onFinish={handleSubmit(onSubmit)} layout="vertical">
+    <Form
+      onFinish={handleSubmit(onSubmit)}
+      layout="vertical"
+      className={style.form}
+    >
       <Form.Item
         label={t('Name')}
         validateStatus={errors.name ? 'error' : ''}
@@ -118,7 +155,45 @@ const CreateSurvivor = () => {
         />
       </Form.Item>
 
-      <Button type="primary" htmlType="submit" loading={isPending}>
+      <Card loading={itemsIsPending} className={style.inventory}>
+        <Card.Meta title={t('Inventory')} />
+        {items?.map((item: IItem, index) => (
+          <Form.Item
+            key={item.id}
+            label={item.name}
+            layout="horizontal"
+            labelCol={{ span: 10 }}
+            wrapperCol={{ span: 8 }}
+          >
+            <Controller
+              name={`inventory.${item.id}.quantity`}
+              control={control}
+              defaultValue={0}
+              render={({ field }) => (
+                <InputNumber
+                  className={style.quantityInput}
+                  {...field}
+                  type="number"
+                  min={0}
+                  max={1000000}
+                  step={1}
+                  precision={0}
+                  value={field.value ?? 0}
+                  onChange={(value) => field.onChange(value ?? 0)}
+                />
+              )}
+            />
+          </Form.Item>
+        ))}
+      </Card>
+
+      <Divider />
+
+      <Button
+        type="primary"
+        htmlType="submit"
+        loading={createSurvivorIsPending || itemsIsPending}
+      >
         {t('Create Survivor')}
       </Button>
     </Form>

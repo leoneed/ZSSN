@@ -35,3 +35,8 @@ class SurvivorSchema(Schema):
     longitude: float
     is_infected: bool
     inventory: List[InventorySchema]
+
+
+class ItemSchema(Schema):
+    id: int
+    name: str

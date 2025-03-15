@@ -34,3 +34,8 @@ export interface ISurvivorCreate {
   longitude: number;
   inventory: IInventoryCreate[];
 }
+
+export interface IItem {
+  id: number;
+  name: string;
+}

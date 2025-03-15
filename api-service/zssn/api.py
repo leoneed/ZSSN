@@ -3,7 +3,7 @@ from ninja import NinjaAPI
 from django.db import transaction
 
 from zssn.models import Inventory, Item, Survivor
-from zssn.schemas import SurvivorCreateSchema, SurvivorSchema
+from zssn.schemas import ItemSchema, SurvivorCreateSchema, SurvivorSchema
 
 api = NinjaAPI()
 
@@ -67,3 +67,10 @@ def get_survivors_list(request):
     survivors = Survivor.objects.all()
 
     return [format_survivor(suv) for suv in survivors]
+
+
+@api.get("items", response=List[ItemSchema])
+def get_items_list(request):
+    items = Item.objects.all()
+
+    return items

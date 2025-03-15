@@ -5,7 +5,7 @@ import {
   useQuery,
   useQueryClient,
 } from '@tanstack/react-query';
-import { ISurvivor, ISurvivorCreate } from './types';
+import { IItem, ISurvivor, ISurvivorCreate } from './types';
 
 const API_URL = 'http://localhost:8000/api'; //TODO: move to env config
 
@@ -18,6 +18,7 @@ const api = axios.create({
 
 const survivorsQueryKey = 'survivors';
 const survivorQueryKey = 'survivor';
+const itemsQueryKey = 'items';
 
 export const useSurvivors = () =>
   useQuery({
@@ -58,3 +59,13 @@ export const useCreateSurvivor = (
     onError,
   });
 };
+
+export const useGetItems = () =>
+  useQuery({
+    queryKey: [itemsQueryKey],
+    queryFn: async () => {
+      const { data: items } = await api.get<IItem[]>('items');
+
+      return items;
+    },
+  });
