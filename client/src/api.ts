@@ -1,6 +1,11 @@
 import axios from 'axios';
-import { useQuery } from '@tanstack/react-query';
-import { ISurvivor } from './types';
+import {
+  MutationOptions,
+  useMutation,
+  useQuery,
+  useQueryClient,
+} from '@tanstack/react-query';
+import { ISurvivor, ISurvivorCreate } from './types';
 
 const API_URL = 'http://localhost:8000/api'; //TODO: move to env config
 
@@ -11,9 +16,12 @@ const api = axios.create({
   },
 });
 
+const survivorsQueryKey = 'survivors';
+const survivorQueryKey = 'survivor';
+
 export const useSurvivors = () =>
   useQuery({
-    queryKey: ['survivors'],
+    queryKey: [survivorsQueryKey],
     queryFn: async () => {
       const { data: survivors } = await api.get<ISurvivor[]>('survivors');
 
@@ -23,10 +31,30 @@ export const useSurvivors = () =>
 
 export const useSurvivor = (id: Number) =>
   useQuery({
-    queryKey: ['survivor', id],
+    queryKey: [survivorQueryKey, id],
     queryFn: async () => {
       const { data: survivor } = await api.get<ISurvivor>(`survivors/${id}`);
 
       return survivor;
     },
   });
+
+export const useCreateSurvivor = (
+  onSuccess?: (data: ISurvivor) => void,
+  onError?: (error: Error) => void
+) => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (newSurvivor: ISurvivorCreate) => {
+      const { data } = await api.post('survivors', newSurvivor);
+
+      return data;
+    },
+    onSuccess: (data: ISurvivor) => {
+      queryClient.invalidateQueries({ queryKey: [survivorsQueryKey] });
+      onSuccess && onSuccess(data);
+    },
+    onError,
+  });
+};
