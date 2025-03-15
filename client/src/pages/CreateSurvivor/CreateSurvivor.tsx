@@ -21,8 +21,10 @@ import {
 import { t } from '../../utils';
 import style from './createSurvivor.module.scss';
 import { useNavigate } from 'react-router-dom';
+import { useSurvivorContext } from '../../context/SurvivorContext';
 
 const CreateSurvivor = () => {
+  const { login } = useSurvivorContext();
   const {
     handleSubmit,
     control,
@@ -37,6 +39,7 @@ const CreateSurvivor = () => {
     useCreateSurvivor(
       ({ id, name }: ISurvivor) => {
         message.success(`${t('Survivor Created:')} ${name}`);
+        login(id);
         navigate(`/survivors/${id}`);
       },
       (error) => {

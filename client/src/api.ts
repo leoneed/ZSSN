@@ -30,13 +30,17 @@ export const useSurvivors = () =>
     },
   });
 
-export const useSurvivor = (id: Number) =>
+export const useSurvivor = (id: number | null) =>
   useQuery({
     queryKey: [survivorQueryKey, id],
     queryFn: async () => {
-      const { data: survivor } = await api.get<ISurvivor>(`survivors/${id}`);
+      if (id !== null) {
+        const { data: survivor } = await api.get<ISurvivor>(`survivors/${id}`);
 
-      return survivor;
+        return survivor;
+      }
+
+      return null;
     },
   });
 

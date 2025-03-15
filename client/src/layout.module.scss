@@ -9,3 +9,13 @@
     margin: 24px;
     padding: 24px;
 }
+
+.loggedInSurvivor {
+    text-align: right;
+    padding: 16px 0;
+    vertical-align: bottom; 
+}
+
+.loggedInSurvivor > * {
+    margin-left: 16px;
+}
