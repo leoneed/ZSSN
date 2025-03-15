@@ -6,4 +6,11 @@ export interface ISurvivor {
   latitude: number;
   longitude: number;
   name: string;
+  inventory: IInventory[];
+}
+
+export interface IInventory {
+  item_id: number;
+  item_name: string;
+  quantity: number;
 }

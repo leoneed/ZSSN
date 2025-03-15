@@ -15,8 +15,18 @@ export const useSurvivors = () =>
   useQuery({
     queryKey: ['survivors'],
     queryFn: async () => {
-      const { data } = await api.get<ISurvivor[]>('survivors');
+      const { data: survivors } = await api.get<ISurvivor[]>('survivors');
 
-      return data;
+      return survivors;
+    },
+  });
+
+export const useSurvivor = (id: Number) =>
+  useQuery({
+    queryKey: ['survivor', id],
+    queryFn: async () => {
+      const { data: survivor } = await api.get<ISurvivor>(`survivors/${id}`);
+
+      return survivor;
     },
   });

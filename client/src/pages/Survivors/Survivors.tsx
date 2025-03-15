@@ -4,10 +4,8 @@ import Layout from 'antd/es/layout/layout';
 import { Divider, Table, TableProps } from 'antd';
 import { t } from '../../utils';
 import { ISurvivor } from '../../types';
-import infectedImage from '../../icons/infected.png';
-import inotInfectedImage from '../../icons/notInfected.png';
-import style from './survivors.module.scss';
-import { Link, Links } from 'react-router-dom';
+import { Link } from 'react-router-dom';
+import IsInfected from '../../components/IsInfected/IsInfected';
 
 const Survivors = () => {
   const { data: survivors } = useSurvivors();
@@ -35,16 +33,7 @@ const columns: TableProps<ISurvivor>['columns'] = [
     title: t('Is Infected'),
     dataIndex: 'is_infected',
     key: 'is_infected',
-    render: (_, { is_infected }) =>
-      is_infected ? (
-        <img className={style.image} src={infectedImage} alt={t('Infected')} />
-      ) : (
-        <img
-          className={style.image}
-          src={inotInfectedImage}
-          alt={t('Not infected')}
-        />
-      ),
+    render: (_, { is_infected }) => <IsInfected infected={is_infected} />,
   },
   {
     title: t('Action'),
