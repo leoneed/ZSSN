@@ -82,7 +82,7 @@ def create_survivor(request, new_survivor: SurvivorCreateSchema):
         )
 
 
-@api.put("/survivors/{survivor_id}/location")
+@api.put("survivors/{survivor_id}/location")
 def update_location(request, survivor_id: int, new_location: LocationUpdateSchema):
     try:
         survivor = Survivor.objects.get(id=survivor_id)
@@ -139,7 +139,7 @@ def get_items_list(request):
     return items
 
 
-@api.post("/survivors/{survivor_id}/report-infection")
+@api.post("survivors/{survivor_id}/report-infection")
 def report_infection(request, survivor_id: int, payload: InfectionReportSchema):
     try:
         with transaction.atomic():
@@ -215,7 +215,7 @@ def transfer_items(
         survivor_inv.save()
 
 
-@api.post("/survivors/{survivor_id}/trade")
+@api.post("survivors/{survivor_id}/trade")
 def trade(request, survivor_id: int, trade: TradeSchema):
     try:
         with transaction.atomic():
