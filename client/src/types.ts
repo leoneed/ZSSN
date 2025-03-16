@@ -35,6 +35,8 @@ export interface ISurvivorCreate {
   inventory: IInventoryCreate[];
 }
 
+export type ILocation = Pick<ISurvivorCreate, 'latitude' | 'longitude'>;
+
 export interface IItem {
   id: number;
   name: string;

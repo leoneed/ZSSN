@@ -26,6 +26,11 @@ class SurvivorCreateSchema(Schema):
     inventory: List[InventoryCreateSchema]
 
 
+class LocationUpdateSchema(Schema):
+    latitude: float
+    longitude: float
+
+
 class SurvivorSchema(Schema):
     id: int
     name: str

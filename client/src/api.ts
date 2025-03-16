@@ -5,7 +5,9 @@ import {
   useQuery,
   useQueryClient,
 } from '@tanstack/react-query';
-import { IItem, ISurvivor, ISurvivorCreate } from './types';
+import { IItem, ILocation, ISurvivor, ISurvivorCreate } from './types';
+import { message } from 'antd';
+import { t } from './utils';
 
 const API_URL = 'http://localhost:8000/api'; //TODO: move to env config
 
@@ -30,12 +32,14 @@ export const useSurvivors = () =>
     },
   });
 
-export const useSurvivor = (id: number | null) =>
+export const useSurvivor = (survivorId: number | null) =>
   useQuery({
-    queryKey: [survivorQueryKey, id],
+    queryKey: [survivorQueryKey, survivorId],
     queryFn: async () => {
-      if (id !== null) {
-        const { data: survivor } = await api.get<ISurvivor>(`survivors/${id}`);
+      if (survivorId !== null) {
+        const { data: survivor } = await api.get<ISurvivor>(
+          `survivors/${survivorId}`
+        );
 
         return survivor;
       }
@@ -44,10 +48,7 @@ export const useSurvivor = (id: number | null) =>
     },
   });
 
-export const useCreateSurvivor = (
-  onSuccess?: (data: ISurvivor) => void,
-  onError?: (error: Error) => void
-) => {
+export const useCreateSurvivor = (onSuccess?: (data: ISurvivor) => void) => {
   const queryClient = useQueryClient();
 
   return useMutation({
@@ -57,10 +58,14 @@ export const useCreateSurvivor = (
       return data;
     },
     onSuccess: (data: ISurvivor) => {
+      message.success(`${t('Survivor Created:')} ${data.name}`);
+
       queryClient.invalidateQueries({ queryKey: [survivorsQueryKey] });
       onSuccess && onSuccess(data);
     },
-    onError,
+    onError: (error: any) => {
+      message.error(`${t('Create request failed')}: ${error?.message}`);
+    },
   });
 };
 
@@ -73,3 +78,37 @@ export const useGetItems = () =>
       return items;
     },
   });
+
+export const useUpdateLocation = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({
+      survivorId,
+      location,
+    }: {
+      survivorId: number;
+      location: ILocation;
+    }) => {
+      const { data } = await api.put(
+        `/survivors/${survivorId}/location`,
+        location
+      );
+
+      return data;
+    },
+    onSuccess: (_, { survivorId }) => {
+      message.success(t('Location updated successfully'));
+
+      queryClient.invalidateQueries({ queryKey: [survivorsQueryKey] });
+      queryClient.invalidateQueries({
+        queryKey: [survivorQueryKey, survivorId],
+      });
+    },
+    onError: (error: any) => {
+      message.error(
+        error.response?.data?.message || t('Location updated successfully')
+      );
+    },
+  });
+};

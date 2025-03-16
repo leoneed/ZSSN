@@ -1,27 +1,20 @@
 import React from 'react';
-import { Controller, useForm } from 'react-hook-form';
+import { Control, Controller, useForm } from 'react-hook-form';
 import {
   Gender,
   IInventoryCreate,
   IItem,
+  ILocation,
   ISurvivor,
   ISurvivorCreate,
 } from '../../types';
 import { useCreateSurvivor, useGetItems } from '../../api';
-import {
-  Button,
-  Card,
-  Divider,
-  Form,
-  Input,
-  InputNumber,
-  Select,
-  message,
-} from 'antd';
+import { Button, Card, Divider, Form, Input, InputNumber, Select } from 'antd';
 import { t } from '../../utils';
 import style from './createSurvivor.module.scss';
 import { useNavigate } from 'react-router-dom';
 import { useSurvivorContext } from '../../context/SurvivorContext';
+import LocationFormItem from '../../components/Form/LocationFormItem';
 
 const CreateSurvivor = () => {
   const { login } = useSurvivorContext();
@@ -36,16 +29,10 @@ const CreateSurvivor = () => {
   });
   const navigate = useNavigate();
   const { mutate: createSurvivor, isPending: createSurvivorIsPending } =
-    useCreateSurvivor(
-      ({ id, name }: ISurvivor) => {
-        message.success(`${t('Survivor Created:')} ${name}`);
-        login(id);
-        navigate(`/survivors/${id}`);
-      },
-      (error) => {
-        message.error(`${t('Server error')}: ${error.message}`);
-      }
-    );
+    useCreateSurvivor(({ id }: ISurvivor) => {
+      login(id);
+      navigate(`/survivors/${id}`);
+    });
   const { data: items = [], isPending: itemsIsPending } = useGetItems();
 
   const onSubmit = (data: ISurvivorCreate) => {
@@ -120,43 +107,10 @@ const CreateSurvivor = () => {
         />
       </Form.Item>
 
-      <Form.Item
-        label="Latitude"
-        validateStatus={errors.latitude ? 'error' : ''}
-        help={errors.latitude?.message}
-      >
-        <Controller
-          name="latitude"
-          control={control}
-          rules={{
-            required: t('Latitude is required'),
-            min: { value: -90, message: t('Min latitude is -90') },
-            max: { value: 90, message: t('Max latitude is 90') },
-          }}
-          render={({ field }) => (
-            <Input type="number" step="0.0001" {...field} />
-          )}
-        />
-      </Form.Item>
-
-      <Form.Item
-        label="Longitude"
-        validateStatus={errors.longitude ? 'error' : ''}
-        help={errors.longitude?.message}
-      >
-        <Controller
-          name="longitude"
-          control={control}
-          rules={{
-            required: t('Longitude is required'),
-            min: { value: -180, message: t('Min longitude is -180') },
-            max: { value: 180, message: t('Max longitude is 180') },
-          }}
-          render={({ field }) => (
-            <Input type="number" step="0.0001" {...field} />
-          )}
-        />
-      </Form.Item>
+      <LocationFormItem
+        control={control as unknown as Control<ILocation>}
+        errors={errors}
+      />
 
       <Card loading={itemsIsPending} className={style.inventory}>
         <Card.Meta title={t('Inventory')} />
