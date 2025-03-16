@@ -44,7 +44,7 @@ const Sidebar = () => {
   const menuItems = [...defaultMenuItems, ...dynamicMenuItems];
 
   return (
-    <Sider>
+    <Sider breakpoint="md" collapsedWidth={0}>
       <Menu theme="dark" selectedKeys={[location.pathname]} items={menuItems} />
     </Sider>
   );

@@ -55,7 +55,9 @@ const Survivors = () => {
   return (
     <Layout>
       <Divider>{t('Survivors List')}</Divider>
-      <Table dataSource={dataSource} columns={columns} />
+      <div style={{ overflowX: 'auto' }}>
+        <Table dataSource={dataSource} columns={columns} />
+      </div>
     </Layout>
   );
 };

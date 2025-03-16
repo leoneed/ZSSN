@@ -11,7 +11,7 @@ const InventoryCard = ({ inventory }: { inventory: IInventory[] }) => {
 
   return (
     <Card title={t('Inventory')}>
-      <Table dataSource={dataSource} columns={columns} />
+      <Table dataSource={dataSource} columns={columns} tableLayout="fixed" />
     </Card>
   );
 };

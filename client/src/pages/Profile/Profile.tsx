@@ -30,15 +30,17 @@ const Profile = () => {
 
   return (
     <>
-      <Row>
-        <Col className={style.column} span={10}>
+      <Row gutter={[16, 16]} justify="center">
+        <Col className={style.column} xs={24} sm={24} md={12} lg={8}>
           <SurvivorCard survivor={survivor} />
         </Col>
-        <Col className={style.column} span={6}>
-          <InventoryCard inventory={survivor.inventory} />
+        <Col className={style.column} xs={24} sm={24} md={12} lg={8}>
+          <div>
+            <InventoryCard inventory={survivor.inventory} />
+          </div>
         </Col>
         {isLoggedIn && (
-          <Col className={style.column} span={6}>
+          <Col className={style.column} xs={24} sm={24} md={12} lg={8}>
             <List>
               {isCurrentSurvivorLoggedIn && (
                 <List.Item>

@@ -16,15 +16,15 @@ const AppLayout = ({ children }: { children: ReactNode }) => {
       <Sidebar />
       <Layout>
         <Header className={style.header}>
-          <Row>
-            <Col span={12}>
-              <h1>{t('ZSSN - Zombie Survival Network')}</h1>
+          <Row justify="space-between" align="middle">
+            <Col className={style.title}>
+              <h1>{t('ZSSN')}</h1>
             </Col>
             {isLoggedIn && (
-              <Col span={12} className={style.loggedInSurvivor}>
+              <Col className={style.loggedInSurvivor}>
                 <IsInfected infected={loggedInSurvivor?.is_infected || false} />
-                <span>
-                  {t('Hello')} {loggedInSurvivor?.name}
+                <span className={style.loggedInSurvivorName}>
+                  {loggedInSurvivor?.name}
                 </span>
                 <Button onClick={logout}>{t('Logout')}</Button>
               </Col>
