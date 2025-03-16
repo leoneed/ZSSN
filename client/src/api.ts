@@ -4,7 +4,7 @@ import { IItem, ILocation, ISurvivor, ISurvivorCreate, ITrade } from './types';
 import { message } from 'antd';
 import { t } from './utils';
 
-const API_URL = 'http://localhost:8000/api'; //TODO: move to env config
+const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:8000/api';
 
 const api = axios.create({
   baseURL: API_URL,
