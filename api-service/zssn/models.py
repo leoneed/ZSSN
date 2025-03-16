@@ -1,4 +1,5 @@
 from django.db import models
+from django.db.models import UniqueConstraint
 from datetime import date
 from zssn.constants import GENDER
 
@@ -35,3 +36,8 @@ class Inventory(models.Model):
     )
     item = models.ForeignKey(Item, on_delete=models.CASCADE)
     quantity = models.PositiveIntegerField()
+
+    class Meta:
+        constraints = [
+            UniqueConstraint(fields=["survivor", "item"], name="unique_survivor_item")
+        ]
