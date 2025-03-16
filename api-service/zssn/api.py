@@ -1,3 +1,4 @@
+from datetime import date
 from typing import List
 from ninja import NinjaAPI
 from django.db import transaction
@@ -9,6 +10,7 @@ from zssn.schemas import (
     LocationUpdateSchema,
     SurvivorCreateSchema,
     SurvivorSchema,
+    TradeSchema,
 )
 
 api = NinjaAPI()
@@ -162,6 +164,7 @@ def report_infection(request, survivor_id: int, payload: InfectionReportSchema):
 
             if infected_survivor.infected_reported_by.count() >= 3:
                 infected_survivor.is_infected = True
+                infected_survivor.date_infected = date.today()
                 infected_survivor.save()
 
             return api.create_response(

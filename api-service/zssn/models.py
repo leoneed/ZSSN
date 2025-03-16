@@ -11,6 +11,7 @@ class Survivor(models.Model):
     latitude = models.FloatField()
     longitude = models.FloatField()
     is_infected = models.BooleanField(default=False)
+    date_infected = models.DateField(null=True, blank=True)
     infected_reported_by = models.ManyToManyField(
         "self",
         symmetrical=False,
