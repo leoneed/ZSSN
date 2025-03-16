@@ -1,6 +1,6 @@
 import axios from 'axios';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { IItem, ILocation, ISurvivor, ISurvivorCreate } from './types';
+import { IItem, ILocation, ISurvivor, ISurvivorCreate, ITrade } from './types';
 import { message } from 'antd';
 import { t } from './utils';
 
@@ -43,7 +43,7 @@ export const useSurvivor = (survivorId: number | null) =>
     },
   });
 
-export const useCreateSurvivor = (onSuccess?: (data: ISurvivor) => void) => {
+export const useCreateSurvivor = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
@@ -56,7 +56,6 @@ export const useCreateSurvivor = (onSuccess?: (data: ISurvivor) => void) => {
       message.success(`${t('Survivor Created:')} ${data.name}`);
 
       queryClient.invalidateQueries({ queryKey: [survivorsQueryKey] });
-      onSuccess && onSuccess(data);
     },
     onError: (error: any) => {
       message.error(`${t('Create request failed')}: ${error?.message}`);
@@ -138,6 +137,38 @@ export const useReportInfection = () => {
       message.error(
         t(error.response?.data?.error || t('Failed to report infection'))
       );
+    },
+  });
+};
+
+export const useTradeItems = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({
+      survivorId,
+      trade,
+    }: {
+      survivorId: number;
+      trade: ITrade;
+    }) => {
+      const response = await api.post(`/survivors/${survivorId}/trade`, trade);
+
+      return response.data;
+    },
+    onSuccess: (_, { survivorId, trade }) => {
+      queryClient.invalidateQueries({ queryKey: [survivorsQueryKey] });
+      queryClient.invalidateQueries({
+        queryKey: [survivorQueryKey, survivorId],
+      });
+      queryClient.invalidateQueries({
+        queryKey: [survivorQueryKey, trade.proposer_id],
+      });
+
+      message.success(t('Trade successful!'));
+    },
+    onError: () => {
+      message.error(`${t('Trade failed')}`);
     },
   });
 };

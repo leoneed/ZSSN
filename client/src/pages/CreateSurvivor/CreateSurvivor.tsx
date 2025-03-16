@@ -29,10 +29,7 @@ const CreateSurvivor = () => {
   });
   const navigate = useNavigate();
   const { mutate: createSurvivor, isPending: createSurvivorIsPending } =
-    useCreateSurvivor(({ id }: ISurvivor) => {
-      login(id);
-      navigate(`/survivors/${id}`);
-    });
+    useCreateSurvivor();
   const { data: items = [], isPending: itemsIsPending } = useGetItems();
 
   const onSubmit = (data: ISurvivorCreate) => {
@@ -43,13 +40,21 @@ const CreateSurvivor = () => {
       }))
       .filter((inv) => inv.quantity > 0);
 
-    createSurvivor({
-      ...data,
-      age: Number(data.age),
-      latitude: Number(data.latitude),
-      longitude: Number(data.longitude),
-      inventory,
-    });
+    createSurvivor(
+      {
+        ...data,
+        age: Number(data.age),
+        latitude: Number(data.latitude),
+        longitude: Number(data.longitude),
+        inventory,
+      },
+      {
+        onSuccess: ({ id }: ISurvivor) => {
+          login(id);
+          navigate(`/survivors/${id}`);
+        },
+      }
+    );
   };
 
   return (
@@ -114,7 +119,7 @@ const CreateSurvivor = () => {
 
       <Card loading={itemsIsPending} className={style.inventory}>
         <Card.Meta title={t('Inventory')} />
-        {items?.map((item: IItem, index) => (
+        {items?.map((item: IItem) => (
           <Form.Item
             key={item.id}
             label={item.name}

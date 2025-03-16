@@ -1,7 +1,8 @@
 from datetime import date
 from typing import List
+from django.db.models import QuerySet
 from ninja import NinjaAPI
-from django.db import transaction
+from django.db import IntegrityError, transaction
 
 from zssn.models import Inventory, Item, Survivor
 from zssn.schemas import (
@@ -10,6 +11,7 @@ from zssn.schemas import (
     LocationUpdateSchema,
     SurvivorCreateSchema,
     SurvivorSchema,
+    TradeItemSchema,
     TradeSchema,
 )
 
@@ -74,6 +76,10 @@ def create_survivor(request, new_survivor: SurvivorCreateSchema):
             return format_survivor(survivor)
     except Item.DoesNotExist:
         return api.create_response(request, {"error": "Invalid item"}, status=400)
+    except IntegrityError:
+        return api.create_response(
+            request, {"error": "Items can't be added to inventory twice"}, status=400
+        )
 
 
 @api.put("/survivors/{survivor_id}/location")
@@ -175,3 +181,94 @@ def report_infection(request, survivor_id: int, payload: InfectionReportSchema):
 
     except Survivor.DoesNotExist:
         return api.create_response(request, {"error": "Survivor not found"}, status=404)
+
+
+def sum_items_points(items: List[TradeItemSchema]) -> int:
+    """Sum of all item points in the list"""
+    total = 0
+
+    for item in items:
+        total += Item.objects.get(id=item.item_id).points * item.quantity
+
+    return total
+
+
+def transfer_items(
+    items: List[TradeItemSchema],
+    from_inventory: QuerySet[Inventory],
+    to_survivor: Survivor,
+):
+    """Move items from"""
+    for item in items:
+        inv_item = from_inventory.get(item_id=item.item_id)
+        inv_item.quantity -= item.quantity
+
+        if inv_item.quantity == 0:
+            inv_item.delete()
+        else:
+            inv_item.save()
+
+        survivor_inv, _ = Inventory.objects.get_or_create(
+            survivor=to_survivor, item_id=item.item_id, defaults={"quantity": 0}
+        )
+        survivor_inv.quantity += item.quantity
+        survivor_inv.save()
+
+
+@api.post("/survivors/{survivor_id}/trade")
+def trade(request, survivor_id: int, trade: TradeSchema):
+    try:
+        with transaction.atomic():
+            proposer = Survivor.objects.get(id=trade.proposer_id)
+            recipient = Survivor.objects.get(id=survivor_id)
+
+            if proposer.is_infected or recipient.is_infected:
+                return api.create_response(
+                    request, {"error": "Infected survivors cannot trade"}, status=400
+                )
+
+            if sum_items_points(trade.propose_items) != sum_items_points(
+                trade.requested_items
+            ):
+                return api.create_response(
+                    request, {"error": "This trade is not fair"}, status=400
+                )
+
+            proposer_inventory = Inventory.objects.filter(
+                survivor=proposer
+            ).select_for_update()
+            recipient_inventory = Inventory.objects.filter(
+                survivor=recipient
+            ).select_for_update()
+
+            for item in trade.propose_items:
+                invItem = proposer_inventory.filter(item_id=item.item_id).first()
+
+                if not invItem or invItem.quantity < item.quantity:
+                    return api.create_response(
+                        request,
+                        {"error": "Proposer does not have enough items"},
+                        status=400,
+                    )
+
+            for item in trade.requested_items:
+                invItem = recipient_inventory.filter(item_id=item.item_id).first()
+
+                if not invItem or invItem.quantity < item.quantity:
+                    return api.create_response(
+                        request,
+                        {"error": "Recipient does not have enough items"},
+                        status=400,
+                    )
+
+            transfer_items(trade.propose_items, proposer_inventory, recipient)
+            transfer_items(trade.requested_items, recipient_inventory, proposer)
+
+            return api.create_response(
+                request, {"message": "Trade successful"}, status=200
+            )
+
+    except Survivor.DoesNotExist:
+        return api.create_response(request, {"error": "Survivor not found"}, status=404)
+    except Item.DoesNotExist:
+        return api.create_response(request, {"error": "Item/s not found"}, status=404)

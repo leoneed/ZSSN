@@ -40,4 +40,16 @@ export type ILocation = Pick<ISurvivorCreate, 'latitude' | 'longitude'>;
 export interface IItem {
   id: number;
   name: string;
+  points: number;
+}
+
+export interface ITradeItem {
+  item_id: number;
+  quantity: number;
+}
+
+export interface ITrade {
+  requested_items: ITradeItem[];
+  proposer_id: number;
+  propose_items: ITradeItem[];
 }

@@ -45,7 +45,19 @@ class SurvivorSchema(Schema):
 class ItemSchema(Schema):
     id: int
     name: str
+    points: int
 
 
 class InfectionReportSchema(Schema):
     reporter_id: int
+
+
+class TradeItemSchema(Schema):
+    item_id: int
+    quantity: int
+
+
+class TradeSchema(Schema):
+    requested_items: List[TradeItemSchema]
+    proposer_id: int
+    propose_items: List[TradeItemSchema]

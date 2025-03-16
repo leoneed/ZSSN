@@ -24,7 +24,7 @@ const LocationUpdate = ({
       longitude: survivor.longitude,
     },
   });
-  const { mutate: updateLocation, isPending } = useUpdateLocation();
+  const { mutate: updateLocation, isPending, reset } = useUpdateLocation();
 
   if (!survivor) return null;
 
@@ -36,19 +36,22 @@ const LocationUpdate = ({
     );
 
     if (!isPending && isLocationChanged) {
-      updateLocation({
-        survivorId: survivor.id,
-        location: {
-          longitude,
-          latitude,
+      updateLocation(
+        {
+          survivorId: survivor.id,
+          location: {
+            longitude,
+            latitude,
+          },
         },
-      });
+        {
+          onSuccess: () => {
+            reset();
+            closeModal();
+          },
+        }
+      );
     }
-  };
-
-  const onModalOk = async () => {
-    await handleSubmit(onSubmit)();
-    closeModal();
   };
 
   return (
@@ -60,8 +63,9 @@ const LocationUpdate = ({
       <Modal
         title={t('Set new location')}
         open={isModalOpen}
-        onOk={onModalOk}
+        onOk={handleSubmit(onSubmit)}
         onCancel={closeModal}
+        confirmLoading={isPending}
       >
         <Form layout="vertical">
           <LocationFormItem control={control} errors={errors} />
