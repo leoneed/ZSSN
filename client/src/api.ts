@@ -1,10 +1,5 @@
 import axios from 'axios';
-import {
-  MutationOptions,
-  useMutation,
-  useQuery,
-  useQueryClient,
-} from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { IItem, ILocation, ISurvivor, ISurvivorCreate } from './types';
 import { message } from 'antd';
 import { t } from './utils';
@@ -108,6 +103,40 @@ export const useUpdateLocation = () => {
     onError: (error: any) => {
       message.error(
         error.response?.data?.message || t('Location updated successfully')
+      );
+    },
+  });
+};
+
+export const useReportInfection = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({
+      survivorId,
+      reporterId,
+    }: {
+      survivorId: number;
+      reporterId: number;
+    }) => {
+      const { data } = await api.post<{ message: string }>(
+        `/survivors/${survivorId}/report-infection`,
+        { reporter_id: reporterId }
+      );
+
+      return data;
+    },
+    onSuccess: (_, { survivorId }) => {
+      queryClient.invalidateQueries({ queryKey: [survivorsQueryKey] });
+      queryClient.invalidateQueries({
+        queryKey: [survivorQueryKey, survivorId],
+      });
+
+      message.success(t('Infection reported'));
+    },
+    onError: (error: any) => {
+      message.error(
+        t(error.response?.data?.error || t('Failed to report infection'))
       );
     },
   });

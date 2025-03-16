@@ -45,3 +45,7 @@ class SurvivorSchema(Schema):
 class ItemSchema(Schema):
     id: int
     name: str
+
+
+class InfectionReportSchema(Schema):
+    reporter_id: int

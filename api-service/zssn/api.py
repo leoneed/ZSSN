@@ -4,6 +4,7 @@ from django.db import transaction
 
 from zssn.models import Inventory, Item, Survivor
 from zssn.schemas import (
+    InfectionReportSchema,
     ItemSchema,
     LocationUpdateSchema,
     SurvivorCreateSchema,
@@ -128,3 +129,46 @@ def get_items_list(request):
     items = Item.objects.all()
 
     return items
+
+
+@api.post("/survivors/{survivor_id}/report-infection")
+def report_infection(request, survivor_id: int, payload: InfectionReportSchema):
+    try:
+        with transaction.atomic():
+            infected_survivor = Survivor.objects.get(id=survivor_id)
+            reporter = Survivor.objects.get(id=payload.reporter_id)
+
+            if infected_survivor.is_infected:
+                return api.create_response(
+                    request, {"error": "Survivor is already infected"}, status=400
+                )
+
+            if infected_survivor.id == reporter.id:
+                return api.create_response(
+                    request,
+                    {"error": "You cannot report yourself as infected"},
+                    status=400,
+                )
+
+            if reporter in infected_survivor.infected_reported_by.all():
+                return api.create_response(
+                    request,
+                    {"error": "You have already reported this survivor"},
+                    status=400,
+                )
+
+            infected_survivor.infected_reported_by.add(reporter)
+            infected_survivor.refresh_from_db()
+
+            if infected_survivor.infected_reported_by.count() >= 3:
+                infected_survivor.is_infected = True
+                infected_survivor.save()
+
+            return api.create_response(
+                request,
+                {"message": "Report submitted successfully"},
+                status=200,
+            )
+
+    except Survivor.DoesNotExist:
+        return api.create_response(request, {"error": "Survivor not found"}, status=404)
